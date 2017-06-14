@@ -6,7 +6,10 @@ extract heterospecific SNPs:
 
 hetSnipper.pl <gene_list> <BAM_list> <reference> <output_folder>
 
-  
+Requirements:
+	- samtools (v1.3 or later)
+	- faOneRecord (from ucsc utilities, found here -> http://hgdownload.soe.ucsc.edu/admin/exe/)
+	- vcffilter (from vcflib, found here -> https://github.com/vcflib/vcflib#vcflib)
 =cut
 
 # required perl modules
@@ -80,7 +83,7 @@ while ($gene_list = <FILE1>){
 				# Remove (1) SNPs that match the reference, (2) header lines, (3) VCF columns before QS values
 				system ("awk 'BEGIN{FS=OFS=\"\\t\"}{if (\$5 != \"<*>\") print}' $gint.$bint.filtered.vcf | sed '/\#\#/d' | sed 's/BQB=.*;DP/DP/g' | sed 's/DP=.*QS=/QS=/g' | sed 's/;.*//g' | sed 's/QS=/   /g' | awk '{ gsub(\",\", \" \", \$8) ; print }' | awk '{if (\$8 < 0.9) print \$0}' | tr ' ' '\t' > $gint.$bint.result.vcf");
 
-				# move results file to gene output folder, then remove intermediaries
+				# move results file to gene output folder, then remove intermediate files
 				system ("mv $gint.$bint.result.vcf $output/$gint.output");
 				system ("rm $gint.$bint.bam $gint.$bint.vcf $gint.$bint.filtered.vcf");
 			}
