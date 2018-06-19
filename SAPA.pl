@@ -30,7 +30,7 @@ my $usage = <<__EOUSAGE__;
 #     ######  ##     ## ##        ##     ## 
 #
 #
-#	SAPA v1.1 (Sequence Alignment and PAML Analysis) aligns coding sequences, translates them into proteins, calculates pairwise Ka/Ks, and performs PAML analyses.
+#	SAPA v2.0 (Sequence Alignment and PAML Analysis) aligns coding sequences, translates them into proteins, calculates pairwise Ka/Ks, and performs PAML analyses.
 #
 #					
 #	Requirements:
@@ -166,10 +166,6 @@ my $help_flag = 0;
 ### Check command line arguments and housekeeping ###
 
 # if command line argument are not recognized
-if (@ARGV) {
-    die "Error, don't understand parameters: @ARGV";
-}
-
 if ($help_flag) {
     die $usage;
 }
@@ -525,6 +521,5 @@ main: {
 		
 			
 }
-
 
 
