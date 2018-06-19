@@ -30,7 +30,7 @@ my $usage = <<__EOUSAGE__;
 #     ######  ##     ## ##        ##     ## 
 #
 #
-#	SAPA v2.0 (Sequence Alignment and PAML Analysis) aligns coding sequences, translates them into proteins, calculates pairwise Ka/Ks, and performs PAML analyses.
+#	SAPA v2.2 (Sequence Alignment and PAML Analysis) aligns coding sequences, translates them into proteins, calculates pairwise Ka/Ks, and performs PAML analyses.
 #
 #					
 #	Requirements:
@@ -63,6 +63,12 @@ my $usage = <<__EOUSAGE__;
 #   Options:
 #
 #	--show_samples					(optional) display species IDs in CDS_file and exit (only requires "-c <CDS_file>" argument).
+#
+#   --include_samples               include specified species/lines 
+#
+#   --exclude_samples               exclude specified species/lines (specify with --samples_file)
+#
+#       --samples_file <string>         (use line ID if present, otherwise use species ID).
 #
 #	--include_outgroups				(must be specifies if orthologous sequecnes have different gene_id's)
 #
@@ -114,6 +120,8 @@ my $gene_id;
 my $output_dir;
 
 my $show_samples_flag = 0;
+my $include_samples_flag = 0;
+my $exclude_samples_flag = 0;
 my $samples_file;
 
 my $include_outgroups_flag = 0;
@@ -240,37 +248,50 @@ main: {
         		}
 			}
 		###############################################################
-		### Initiate the loop to analyze individual transcripts #######
-	
-		foreach my $transcript (@gene_object){
-			
-			###########################################################
-			### Add orthologous sequences to the analysis...  #########
-			### Processes FASTA header to include species and #########
-			### line ID, if present.                          #########
-			
-			if ($include_outgroups_flag) {
-				system ("grep $transcript $orthology_file | tr '\t' '\n' | sort -u > $transcript.list");
-				system ("faSomeRecords $CDS_file $transcript.list $transcript.fa");
-			
-			
-         		# header processing, contd.
-				system ("sed -i.bak '/>/ s/ line=/_/g' $transcript.fa");
-				system ("sed -i.bak '/>/ s/>.*species=/>/g' $transcript.fa");
-				system ("rm $transcript.list *.bak");
+        ### Initiate the loop to analyze individual transcripts #######
+    
+        foreach my $transcript (@gene_object){
+            eval {
+            ###########################################################
+            ### Add orthologous sequences to the analysis...  #########
+            ### Processes FASTA header to include species and #########
+            ### line ID, if present.                          #########
+            
+            if ($include_outgroups_flag) {
+                system ("grep $transcript $orthology_file | tr '\t' '\n' | sort -u > $transcript.list");
+                system ("fastagrep.pl -X -f $transcript.list $CDS_file > $transcript.fa");
+                
+                
+                # header processing, contd.
+                system ("sed -i.bak '/>/ s/ line=/_/g' $transcript.fa");
+                system ("sed -i.bak '/>/ s/>.*species=/>/g' $transcript.fa");
+                system ("rm $transcript.list *.bak");
+### This part will be temporarily edited to alow MK test without adding                 
+            ##########################################################
+            ### Don't add orthologous seqnuences to analysis. ########
+            } else {
+                system ("fastagrep.pl -X $transcript $CDS_file > $transcript.fa");
+                system ("sed -i.bak '/>/ s/ line=/_/g' $transcript.fa");
+                system ("sed -i.bak '/>/ s/>.*species=/>/' $transcript.fa");
+                #######################################################
+                ### Restrict to a subset of samples ###################
+                
+                if ($include_samples_flag) {
+                    system ("fastagrep.pl -f $samples_file $transcript.fa > $transcript.trimmed.fa");
+                    system ("rm $transcript.fa");
+                    system ("mv $transcript.trimmed.fa $transcript.fa");
+                }
 
-			### This part will be temporarily edited to alow MK test without adding 				
-			##########################################################
-			### Don't add orthologous seqnuences to analysis. ########
-       	 	} else {
-				system ("faOneRecord $CDS_file $transcript > $transcript.fa");
-				system ("sed -i.bak '/>/ s/ line=/_/g' $transcript.fa");
-				system ("sed -i.bak '/>/ s/>.*species=/>/' $transcript.fa");
-			}
-			
-			
-			##########################################################
-			### BioPerl process for sequence analysis ################
+                if ($exclude_samples_flag) {
+                    system ("fastagrep.pl -v -f $samples_file $transcript.fa > $transcript.trimmed.fa");
+                    system ("rm $transcript.fa");
+                    system ("mv $transcript.trimmed.fa $transcript.fa");
+                }
+            }
+            
+            
+            ##########################################################
+            ### BioPerl process for sequence analysis ################
 			
 			# read in sequence	
 			my $seqio = Bio::SeqIO->new(-file => "$transcript.fa",
@@ -503,7 +524,7 @@ main: {
 			##########################################################
 			############### END OF LOOP ##############################
 		}		
-		
+		}
 		# Format final output files
 		if ($run_PAML_flag){
 		
