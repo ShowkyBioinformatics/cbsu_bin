@@ -64,9 +64,9 @@ my $usage = <<__EOUSAGE__;
 #
 #	--show_samples					(optional) display species IDs in CDS_file and exit (only requires "-c <CDS_file>" argument).
 #
-#   --include_samples               include specified species/lines 
+#	--include_samples               include specified species/lines 
 #
-#   --exclude_samples               exclude specified species/lines (specify with --samples_file)
+#	--exclude_samples               exclude specified species/lines (specify with --samples_file)
 #
 #       --samples_file <string>         (use line ID if present, otherwise use species ID).
 #
@@ -150,6 +150,8 @@ my $help_flag = 0;
     'output|o=s' => \$output_dir,
     
     'show_samples' => \$show_samples_flag,
+    'include_samples' => \$include_samples_flag,
+    'exclude_samples' => \$exclude_samples_flag,
     'samples_file=s' => \$samples_file,
     
     'include_outgroups' => \$include_outgroups_flag,
